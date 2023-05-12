@@ -21,10 +21,6 @@ Kalman::Kalman() {
 float Kalman::getAngle(float newAngle, float newRate, float dt) {
     rate = newRate - bias;
     angle += dt * rate;
-    /***Remenber to delete this***/
-    //Serial.print("angle:");
-    //Serial.println(angle);
-    /*****/
     P[0][0] += dt * (dt * P[1][1] - P[0][1] - P[1][0] + Q_angle);
     P[0][1] -= dt * P[1][1];
     P[1][0] -= dt * P[1][1];
