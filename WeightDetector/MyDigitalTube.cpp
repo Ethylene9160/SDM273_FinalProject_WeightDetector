@@ -10,6 +10,8 @@ MyDigitalTube::MyDigitalTube(int latchPin, int colckPin, int dataPin)
 
 void MyDigitalTube::light(int i)
 {
+    if(i>9999) i  = 9999;
+    if(i < 0) i = 0;
     unsigned char gewei = (i % 100) % 10;
     unsigned char shiwei = (i % 100) / 10;
     unsigned char baiwei = (i % 1000) / 100;
