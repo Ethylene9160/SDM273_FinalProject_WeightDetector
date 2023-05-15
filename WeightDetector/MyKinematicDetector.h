@@ -26,6 +26,8 @@ public:
   demical* getVals();
 
   demical getNorm();
+	
+  ~DataStorager();
 };
 class MyKinematicDetector:public AngleDetector, public AverageInteface
 {
