@@ -257,3 +257,8 @@ void MyKinematicDetector::show(mydata d){
   Serial.print("my_average_filter: ");
   Serial.println(d);
 }
+
+MyAverageFilter::~MyAverageFilter()
+{
+	delete[] my_queue;
+}
