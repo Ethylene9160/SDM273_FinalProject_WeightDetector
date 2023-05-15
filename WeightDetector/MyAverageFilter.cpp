@@ -102,6 +102,10 @@ MyAverageFilter::MyAverageFilter(AverageInteface* averageInteface, mydata length
 
 }
 
+MyAverageFilter::~MyAverageFilter()
+{
+	delete[] my_queue;
+}
 //mydata MyAverageFilter::abs(mydata data){
 //  return data > 0? data:-data;
 //}
