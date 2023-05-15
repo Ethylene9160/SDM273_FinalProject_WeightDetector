@@ -51,6 +51,8 @@ public:
 	MyAverageFilter(AverageInteface* averageInteface, mydata length, mydata absoluteError, demical relativeError);
 
 	void update(mydata data);
+	
+	~MyAverageFilter();
 };
 
 
