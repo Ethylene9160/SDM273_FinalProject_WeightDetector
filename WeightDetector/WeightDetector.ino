@@ -26,6 +26,7 @@ public:
     Stablizer(int length, int absoluteError, int relativeError);
 
     void update(mydata d);
+    ~Stablizer();
     virtual void show(mydata data) override;
 };
 
@@ -81,4 +82,8 @@ void Stablizer::update(mydata d) {
 
 void Stablizer::begin(){
   //myTube->begin();
+}
+
+Stablizer::~Stablizer(){
+    delete filter;   
 }
