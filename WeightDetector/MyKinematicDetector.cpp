@@ -95,6 +95,7 @@ MyKinematicDetector::MyKinematicDetector()
   this->myFilter = new MyAverageFilter(this, 10, 10, 0.05);
 }
 
+//this is just a function to test whether the MPU6050 works well.
 void MyKinematicDetector::mainLoop()
 {
 	int readouts[nValCnt];
@@ -159,29 +160,31 @@ demical MyKinematicDetector::getRoll()
 
 demical MyKinematicDetector::getPitch()
 {
-  /*
-  DataStorager* storager = beforeRead();
+	DataStorager* storager = beforeRead();
   
-  demical fPitch = this->getPitch(storager->getVals(), storager->getNorm());
+ 	demical fPitch = this->getPitch(storager->getVals(), storager->getNorm());
   
-  if (*(storager->getVals()) < 0) {
-    fPitch = -fPitch;
-  }
-  unsigned long nCurTime = micros();
-  demical dt = (double)(nCurTime - nLastTime) / 1000000.0;
+ 	if (*(storager->getVals()) < 0) {
+		fPitch = -fPitch;
+ 	}
+ 	unsigned long nCurTime = micros();
+ 	demical dt = (double)(nCurTime - nLastTime) / 1000000.0;
   
-  demical fNewPitch = kalmanPitch.getAngle(fPitch, storager->getVals()[5], dt);
+	demical fPitchRate = (fNewPitch - fLastPitch) / dt;
   
-  demical fPitchRate = (fNewPitch - fLastPitch) / dt;
+ 	demical fNewPitch = fPitch*filterCoeffecient + (1.f-filterCoeffecient)*fLastPitch;
+	myFilter->update(ToWeightData::analog2digit(fNewPitch, 0));
+	demical fPitchRate = (fNewPitch - fLastPitch) / dt;
 
-  fLastPitch = fNewPitch;
-  nLastTime = nCurTime;
+ 	fLastPitch = fNewPitch;
+ 	nLastTime = nCurTime;
   
-  delete storager;
-  return fNewPitch;
-  */
+ 	delete storager;
+ 	return fNewPitch;
+  
 
 
+/*
   int readouts[nValCnt];
   readAccGyr(readouts); 
 
@@ -195,67 +198,59 @@ demical MyKinematicDetector::getPitch()
   if (realVals[0] < 0) {
     fPitch = -fPitch;
   }
-  //Serial.print("unFilt:");
-  //Serial.println(fPitch);
   unsigned long nCurTime = micros();
   demical dt = (double)(nCurTime - nLastTime) / 1000000.0;
   
-//  demical fNewPitch = kalmanPitch.getAngle(fPitch, realVals[5], dt);
-
-//  Serial.print("angle: ");
-  //demical d1 = dt*realVals[5];
-  //finalPitch += d1;
-  //Serial.println(finalPitch);
   demical fNewPitch = fPitch*filterCoeffecient + (1.f-filterCoeffecient)*fLastPitch;
-//  demical d2 = fPitch*filterCoeffecient + (1.f-filterCoeffecient)*fLastPitch;
-  //Serial.print("first_order:");
-  //Serial.println(ToWeightData::analog2digit(d2, 0));
   myFilter->update(ToWeightData::analog2digit(fNewPitch, 0));
-//  demical fRollRate = (fNewRoll - fLastRoll) / dt;
   demical fPitchRate = (fNewPitch - fLastPitch) / dt;
-
-//  fLastRoll = fNewRoll;
   fLastPitch = fNewPitch;
-//fLastPitch = d2;
   nLastTime = nCurTime;
   return fNewPitch;
-  
+  */
 }
 
 demical MyKinematicDetector::getYaw()
 {
-  DataStorager* storager = beforeRead();
-  demical rv = *(storager->getVals());
-  demical fNorm = storager->getNorm();
-  delete storager;
-  
+	DataStorager* storager = beforeRead();
+	demical rv = *(storager->getVals());
+	demical fNorm = storager->getNorm();
+	delete storager;
+	
 
-  return this->getYaw(&rv, fNorm);
+	return this->getYaw(&rv, fNorm);
 }
 
 DataStorager::DataStorager(demical* realVals, demical fNorm)
 {
-  this->realVals = realVals;
-  this->fNorm = fNorm;
+ 	this->realVals = new demical[7];
+ 	for(int i = 0; i < 7;i++){
+ 		this->realVals[i] = realVals[i];
+ 	}
+ 	this->fNorm = fNorm;
 }
 
 demical* DataStorager::getVals()
 {
-  return this->realVals;
+ 	return this->realVals;
 }
 
 demical DataStorager::getNorm()
 {
-  return this->fNorm;
+ 	return this->fNorm;
+}
+
+DataStorager:: ~DataStorager(){
+	delete this->realVals;
 }
 
 demical MyKinematicDetector::getAngle(){
-  return this->getPitch();
+ 	return this->getPitch();
 }
 
 void MyKinematicDetector::show(mydata d){
-  Serial.print("my_average_filter: ");
-  Serial.println(d);
+ 	Serial.print("my_average_filter: ");
+ 	Serial.println(d);
 }
 
 MyAverageFilter::~MyAverageFilter()
