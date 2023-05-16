@@ -84,18 +84,18 @@ private:
   
   DataStorager* beforeRead();
 public:
-	/*
-	constructor.
-	Ples initialize it in <code>void setup()</code> function,
-	use keyword <code>new</code> to establish this in the stack space, 
-	will be a better choice.
-	*/
+	
   /*
   a init function for initializing this class, with MPU8265 inside.
   Do not use it.
   */
   void begin();
-  
+  /*
+	constructor.
+	Ples initialize it in <code>void setup()</code> function,
+	use keyword <code>new</code> to establish this in the stack space, 
+	will be a better choice.
+	*/
 	MyKinematicDetector();
 
 	void mainLoop();
@@ -109,6 +109,8 @@ public:
   virtual demical getAngle();
 
   virtual void show(mydata data);
+	
+	~MyKinematicDetector();
 };
 
 
