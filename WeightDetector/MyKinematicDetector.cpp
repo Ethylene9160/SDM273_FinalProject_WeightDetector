@@ -323,9 +323,8 @@ demical MyKinematicDetector::getAngle(){
 }
 
 //test mahony estimator
-volatile float twoKp = twoKpDef;											// 2 * proportional gain (Kp)
-volatile float twoKi = twoKiDef;											// 2 * integral gain (Ki)
-//volatile float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;					// quaternion of sensor frame relative to auxiliary frame
+volatile float twoKp = 1.0f;											// 2 * proportional gain (Kp)
+volatile float twoKi = 0.2f;											// 2 * integral gain (Ki)
 volatile float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;	// integral error terms scaled by Ki
 
 void MyKinematicDetector::MahonyAHRSupdateIMU(float gx, float gy, float gz, float ax, float ay, float az) {
@@ -333,6 +332,7 @@ void MyKinematicDetector::MahonyAHRSupdateIMU(float gx, float gy, float gz, floa
 	float halfvx, halfvy, halfvz;
 	float halfex, halfey, halfez;
 	float qa, qb, qc;
+	float sampleFreq = 1000.f;
 
 	// Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
     // 只在加速度计数据有效时才进行运算
