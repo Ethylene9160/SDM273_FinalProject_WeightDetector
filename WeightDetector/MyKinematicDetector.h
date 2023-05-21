@@ -20,6 +20,7 @@ class DataStorager{
 private:
   demical* realVals;
   demical fNorm;
+  demical q[4];
 public:
   DataStorager(demical* realVals, demical fNorm);
   
