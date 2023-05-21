@@ -1,5 +1,6 @@
 #include "MyKinematicDetector.h"
-
+void deleteAll(ListNode* node);
+/**********class MyKinematicDetector*********/
 void MyKinematicDetector::begin()
 {
 	//Serial.begin(9600); 
@@ -41,7 +42,7 @@ void MyKinematicDetector::readAccGyr(int* pVals)
 void MyKinematicDetector::calibration()
 {
 	demical valSums[7] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0 };
-	//�����
+	//?????
 	for (int i = 0; i < nCalibTimes; ++i) {
 		int mpuVals[nValCnt];
 		readAccGyr(mpuVals);
@@ -49,11 +50,11 @@ void MyKinematicDetector::calibration()
 			valSums[j] += mpuVals[j];
 		}
 	}
-	//����ƽ��
+	//???????
 	for (int i = 0; i < nValCnt; ++i) {
 		calibData[i] = int(valSums[i] / nCalibTimes);
 	}
-	calibData[2] += 16384; //��оƬZ����ֱ���£��趨��̬�����㡣
+	calibData[2] += 16384; //??о?Z????????￡??趨?????????
 }
 
 demical MyKinematicDetector::getRoll(demical* pRealVals, demical fNorm)
@@ -70,6 +71,12 @@ demical MyKinematicDetector::getYaw(demical* pRealVals, demical fNorm)
 	return acos(fCos) * fRad2Deg;
 }
 
+demical MyKinematicDetector ::getPitch(demical* pRealVals, demical fNorm) {
+  demical fNormYZ = sqrt(pRealVals[1] * pRealVals[1] + pRealVals[2] * pRealVals[2]);
+  demical fCos = fNormYZ / fNorm;
+  return acos(fCos) * fRad2Deg;
+}
+
 void MyKinematicDetector::rectify(int* pReadout, demical* pRealVals)
 {
 	for (int i = 0; i < 3; ++i) {
@@ -81,21 +88,26 @@ void MyKinematicDetector::rectify(int* pReadout, demical* pRealVals)
 	}
 }
 
-demical MyKinematicDetector ::getPitch(demical* pRealVals, demical fNorm) {
-	demical fNormYZ = sqrt(pRealVals[1] * pRealVals[1] + pRealVals[2] * pRealVals[2]);
-	demical fCos = fNormYZ / fNorm;
-	return acos(fCos) * fRad2Deg;
-}
-
 
 
 MyKinematicDetector::MyKinematicDetector()
 {
+	ListNode* l0 = new ListNode(0,nullptr);
+	ListNode* l1 = new ListNode(0,l0);
+	ListNode* l2 = new ListNode(0,l1);
+	ListNode* l3 = new ListNode(0,l2);
+	ListNode* l4 = new ListNode(0,l3);
+	ListNode* l5 = new ListNode(0,l4);
+	ListNode* l6 = new ListNode(0,l5);
+	ListNode* l7 = new ListNode(0,l6);
+	ListNode* l8 = new ListNode(0,l7);
+	this->startNode = new ListNode(0,l8);
 	//(*this).begin();
-  this->myFilter = new MyAverageFilter(this, 10, 10, 0.05);
+	//this->filterPower = {0.3,0.2,0.1,0.1,0.1,0.05,0.05,0.05,0.03,0.02}; 
+  //this->myFilter = new MyAverageFilter(this, 10, 10, 0.05);
+  cp_num += 11;
 }
 
-//this is just a function to test whether the MPU6050 works well.
 void MyKinematicDetector::mainLoop()
 {
 	int readouts[nValCnt];
@@ -131,10 +143,14 @@ void MyKinematicDetector::mainLoop()
 	nLastTime = nCurTime;
 
 	Serial.print("Roll:");
-	Serial.print(fNewRoll); Serial.print('(');
-	Serial.print(fRollRate); Serial.print("),\tPitch:");
-	Serial.print(fNewPitch); Serial.print('(');
-	Serial.print(fPitchRate); Serial.print(")\n");
+	Serial.print(fNewRoll); 
+	//Serial.print('(');
+	//Serial.print(fRollRate); 
+	Serial.print("\nPitch:");
+	Serial.print(fNewPitch); 
+	//Serial.print('(');
+	//Serial.print(fPitchRate); 
+	Serial.print("\n");
 	//delay(10);
 }
 
@@ -146,6 +162,7 @@ DataStorager* MyKinematicDetector::beforeRead()
   demical realVals[7];
   rectify(readouts, realVals);
   demical fNorm = sqrt(realVals[0] * realVals[0] + realVals[1] * realVals[1] + realVals[2] * realVals[2]);
+  cp_num++;
   return new DataStorager(realVals, fNorm);
 }
 
@@ -154,37 +171,43 @@ demical MyKinematicDetector::getRoll()
   DataStorager* storager = beforeRead();
   demical rv = *(storager->getVals());
   demical fNorm = storager->getNorm();
+  cp_num--;
   delete storager;
   return this->getRoll(&rv, fNorm);
 }
 
 demical MyKinematicDetector::getPitch()
 {
-	DataStorager* storager = beforeRead();
+  /*
+  DataStorager* storager = beforeRead();
   
- 	demical fPitch = this->getPitch(storager->getVals(), storager->getNorm());
+  demical fPitch = this->getPitch(storager->getVals(), storager->getNorm());
   
- 	if (*(storager->getVals()) < 0) {
-		fPitch = -fPitch;
- 	}
- 	unsigned long nCurTime = micros();
- 	demical dt = (double)(nCurTime - nLastTime) / 1000000.0;
+  if (*(storager->getVals()) < 0) {
+    fPitch = -fPitch;
+  }
+  unsigned long nCurTime = micros();
+  demical dt = (double)(nCurTime - nLastTime) / 1000000.0;
   
-	demical fPitchRate = (fNewPitch - fLastPitch) / dt;
+  //demical fNewPitch = kalmanPitch.getAngle(fPitch, storager->getVals()[5], dt);
+  //demical fNewPitch = fPitch*filterCoeffecient + (1.f-filterCoeffecient)*fLastPitch;
+  push(fPitch);
+  pop();
   
- 	demical fNewPitch = fPitch*filterCoeffecient + (1.f-filterCoeffecient)*fLastPitch;
+  demical fNewPitch = calculateOutput();
+  demical fPitchRate = (fNewPitch - fLastPitch) / dt;
 	myFilter->update(ToWeightData::analog2digit(fNewPitch, 0));
-	demical fPitchRate = (fNewPitch - fLastPitch) / dt;
+	//demical fPitchRate = (fNewPitch - fLastPitch) / dt;
 
- 	fLastPitch = fNewPitch;
- 	nLastTime = nCurTime;
-  
- 	delete storager;
- 	return fNewPitch;
-  
+  fLastPitch = fNewPitch;
+  nLastTime = nCurTime;
+  cp_num--;
+  delete storager;
+  return fNewPitch;
+  */
 
 
-/*
+
   int readouts[nValCnt];
   readAccGyr(readouts); 
 
@@ -200,60 +223,157 @@ demical MyKinematicDetector::getPitch()
   }
   unsigned long nCurTime = micros();
   demical dt = (double)(nCurTime - nLastTime) / 1000000.0;
+  //push(fPitch);
+  //pop();
+  //demical fNewPitch = calculateOutput();
   
   demical fNewPitch = fPitch*filterCoeffecient + (1.f-filterCoeffecient)*fLastPitch;
-  myFilter->update(ToWeightData::analog2digit(fNewPitch, 0));
+  
+  /*
+  push(fPitch);
+  pop();
+  
+  demical fNewPitch = calculateOutput();
+  */
+  //myFilter->update(ToWeightData::analog2digit(fNewPitch, 0));
   demical fPitchRate = (fNewPitch - fLastPitch) / dt;
   fLastPitch = fNewPitch;
   nLastTime = nCurTime;
   return fNewPitch;
-  */
+  
+}
+
+void MyKinematicDetector::push(demical val){
+	ListNode* node = startNode;
+	while(node->next != nullptr){
+		node = node->next;
+	}
+	node->next = new ListNode(val);
+	cp_num++;
+}
+
+void MyKinematicDetector::pop(){
+	ListNode* node = startNode;
+	startNode = startNode->next;
+	cp_num--;
+	delete node;
 }
 
 demical MyKinematicDetector::getYaw()
 {
-	DataStorager* storager = beforeRead();
-	demical rv = *(storager->getVals());
-	demical fNorm = storager->getNorm();
-	delete storager;
-	
+  /*
+  DataStorager* storager = beforeRead();
+  demical rv = *(storager->getVals());
+  demical fNorm = storager->getNorm();
+  cp_num--;
+  delete storager;
+  
 
-	return this->getYaw(&rv, fNorm);
+  return this->getYaw(&rv, fNorm);
+  */
+  int readouts[nValCnt];
+  readAccGyr(readouts); 
+
+  demical realVals[7];
+  rectify(readouts, realVals); 
+
+  
+  demical fNorm = sqrt(realVals[0] * realVals[0] + realVals[1] * realVals[1] + realVals[2] * realVals[2]);
+
+  demical fPitch = getYaw(realVals, fNorm); 
+  if (realVals[0] < 0) {
+    fPitch = -fPitch;
+  }
+  unsigned long nCurTime = micros();
+  demical dt = (double)(nCurTime - nLastTime) / 1000000.0;
+  //push(fPitch);
+  //pop();
+  //demical fNewPitch = calculateOutput();
+  
+  demical fNewPitch = fPitch*filterCoeffecient + (1.f-filterCoeffecient)*fLastPitch;
+  
+  /*
+  push(fPitch);
+  pop();
+  
+  demical fNewPitch = calculateOutput();
+  */
+  //myFilter->update(ToWeightData::analog2digit(fNewPitch, 0));
+  demical fPitchRate = (fNewPitch - fLastPitch) / dt;
+  fLastPitch = fNewPitch;
+  nLastTime = nCurTime;
+  return fNewPitch;
 }
 
+
+demical MyKinematicDetector::getAngle(){
+//  return this->getPitch();
+  return this->getYaw();
+}
+
+demical MyKinematicDetector::calculateOutput(){
+	ListNode* node = startNode;
+	demical sum = 0;
+	for(int i=0;i<10;++i){
+		sum += (node->val) * filterPower[i];
+		node = node->next;
+	}
+	return sum;
+} 
+
+void MyKinematicDetector::show(mydata d){
+  Serial.print("myAverageFilter: ");
+  Serial.println(d);
+}
+
+MyKinematicDetector::~MyKinematicDetector(){
+	cp_num--;
+	//delete this->myFilter;
+	
+	deleteAll(this->startNode);
+} 
+/********** end MyKinematic class ********/
+
+/********* class MyKinematic class *******/
 DataStorager::DataStorager(demical* realVals, demical fNorm)
 {
- 	this->realVals = new demical[7];
- 	for(int i = 0; i < 7;i++){
- 		this->realVals[i] = realVals[i];
- 	}
- 	this->fNorm = fNorm;
+  this->realVals = new demical[7];
+  cp_num++;
+  for(int i = 0; i < 7;i++){
+  	this->realVals[i] = realVals[i];
+  }
+  this->fNorm = fNorm;
 }
 
 demical* DataStorager::getVals()
 {
- 	return this->realVals;
+  return this->realVals;
 }
 
 demical DataStorager::getNorm()
 {
- 	return this->fNorm;
+  return this->fNorm;
 }
 
 DataStorager:: ~DataStorager(){
-	delete this->realVals;
+	cp_num--;
+	delete[] this->realVals;
 }
+/*********** end DataStorager class *********/
 
-demical MyKinematicDetector::getAngle(){
- 	return this->getPitch();
+/********** struct ListNode *************/
+ListNode::ListNode():ListNode(0){}
+ListNode::ListNode(demical val):ListNode(0, nullptr){}
+ListNode::ListNode(demical x, ListNode* node){
+	val = x;
+	next = node;
 }
-
-void MyKinematicDetector::show(mydata d){
- 	Serial.print("my_average_filter: ");
- 	Serial.println(d);
-}
-
-MyAverageFilter::~MyAverageFilter()
-{
-	delete[] my_queue;
+/*********** end ListNode ***************/
+void deleteAll(ListNode* node){
+	while(node != nullptr){
+		ListNode* n = node;
+		node = node->next;
+		delete n;
+		cp_num--;
+	}
 }
