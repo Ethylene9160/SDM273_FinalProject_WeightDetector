@@ -15,7 +15,14 @@ typedef float demical;
 #include "ToWeightData.h"
 #include "MyAverageFilter.h"
 //typedef int int16_t;//remenber to delete this!
-
+extern int cp_num;
+struct ListNode {
+	demical val;
+	ListNode* next;
+	ListNode();
+	ListNode(demical x);
+	ListNode(demical x, ListNode* next);
+};
 class DataStorager{
 private:
   demical* realVals;
@@ -26,7 +33,7 @@ public:
   demical* getVals();
 
   demical getNorm();
-	
+
   ~DataStorager();
 };
 class MyKinematicDetector:public AngleDetector, public AverageInteface
@@ -40,13 +47,15 @@ private:
   
 	const int nCalibTimes = 1000; //clear time
 	int calibData[nValCnt]; //clear data
+	int filterPower[10] = {0.02,0.03,0.05,0.05,0.05,0.1,0.1,0.1,0.2,0.3};//the power of the 10th order filter
+	ListNode* startNode;
 
 	unsigned long nLastTime = 0; //last reading time
 	demical fLastRoll = 0.0f; //last Roll
 	demical fLastPitch = 0.0f; //last pitch
 	Kalman kalmanRoll; //Roll filter
 	Kalman kalmanPitch; //Pitch filter
-
+	demical calculateOutput();
   
   demical finalPitch;//remenber to detele this
 	
@@ -70,32 +79,37 @@ private:
 	*/
 	unsigned char readMPUReg(int nReg);
 
-	/*���Roll��*/
+	/*get Roll angle*/
 	demical getRoll(demical* pRealVals, demical fNorm);
 
-	/*���Pitch��*/
+	/*get Pitch angle*/
 	demical getPitch(demical* pRealVals, demical fNorm);
 
-	/*���Yaw��*/
+	/*get Yaw angle*/
 	demical getYaw(demical* pRealVals, demical fNorm);
 
-	/*�Զ������о���������ƫ�ƣ���ת��Ϊ��������*/
+	/*Te-establish data we have got*/
 	void rectify(int* pReadout, demical* pRealVals);
   
-  DataStorager* beforeRead();
+	DataStorager* beforeRead();
+
+	void push(demical val);
+
+	void pop();
 public:
-	
+
   /*
   a init function for initializing this class, with MPU8265 inside.
   Do not use it.
   */
   void begin();
+
   /*
-	constructor.
-	Ples initialize it in <code>void setup()</code> function,
-	use keyword <code>new</code> to establish this in the stack space, 
-	will be a better choice.
-	*/
+  constructor.
+  Ples initialize it in <code>void setup()</code> function,
+  use keyword <code>new</code> to establish this in the stack space,
+  will be a better choice.
+  */
 	MyKinematicDetector();
 
 	void mainLoop();
@@ -109,8 +123,8 @@ public:
   virtual demical getAngle();
 
   virtual void show(mydata data);
-	
-	~MyKinematicDetector();
+
+  ~MyKinematicDetector();
 };
 
 
