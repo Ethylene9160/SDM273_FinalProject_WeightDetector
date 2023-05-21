@@ -27,7 +27,6 @@ class DataStorager{
 private:
   demical* realVals;
   demical fNorm;
-  demical q[4];
 public:
   DataStorager(demical* realVals, demical fNorm);
   
@@ -59,6 +58,7 @@ private:
 	demical calculateOutput();
   
   demical finalPitch;//remenber to detele this
+  demical q[4];
 	
 
 	/*
@@ -91,7 +91,13 @@ private:
 
 	/*Te-establish data we have got*/
 	void rectify(int* pReadout, demical* pRealVals);
+
+	// test mahony estimator
+	void MahonyAHRSupdateIMU(float gx, float gy, float gz, float ax, float ay, float az);
   
+    // test mahony estimator
+	demical q2pitch();
+
 	DataStorager* beforeRead();
 
 	void push(demical val);
